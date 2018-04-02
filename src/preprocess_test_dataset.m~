@@ -1,0 +1,14 @@
+%% preprocess test dataset
+D = dir([TEST_DIR, '*.bmp']);
+images = {D.name};
+
+for i = 1:length(images)
+    name = images{i};
+    
+    img = imread([TEST_DIR, name]);
+    gray = rgb2gray(img);
+    denoise
+    bw_img = imbinarize(gray, 'adaptive', 'ForegroundPolarity', 'dark', 'Sensitivity', 0.55);
+    
+    imwrite(bw_img, [TEST_DIR, 'binarized/', name]);
+end
