@@ -11,14 +11,13 @@ for i = 1:length(images)
     bw_img = imbinarize(denoise, 'adaptive', 'ForegroundPolarity', 'dark', 'Sensitivity', 0.57);
     
     % remove small noise components
-    [a,b] = size(bw_img);
-    d1 = diff(bw_img);
-    d2 = diff(bw_img,1,2);
-    du = [-1*ones(1,b);d1];
-    dd = [-d1;-1*ones(1,b)];
-    dl = [-1*ones(a,1),d2];
-    dr = [-d2,-1*ones(a,1)];
-    bw_img((du+dd+dl+dr)<=-3) = 1;
+    conn = bwconncomp(~bw_img);
+    conn_list = conn.PixelIdxList;
+    for k = 1:length(conn_list)
+        if length(conn_list{k}) <= numel(img)/1000
+            bw_img(conn_list{k}) = 1;
+        end
+    end
     
     imwrite(bw_img, [TEST_DIR, 'binarized/', name]);
 end
