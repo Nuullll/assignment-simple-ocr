@@ -39,7 +39,7 @@ for i = 1:length(images)
     [a,b] = size(img);
     
     %% Processing: linear segmentation
-
+    
     % row-wise segmentation
     duty_r = sum(dimg,2)/b;
     [~, idx] = findpeaks(duty_r, 'MinPeakHeight', 0.9, 'MinPeakWidth', 3, 'Threshold', 0.007);
@@ -133,7 +133,11 @@ for i = 1:length(images)
 
     % do correlation between models and each segmentation
     % resize to align segmentation with model
-    rec_str = '';
+    ocr_str = '';
+    % rectangles for result visualization
+    rectangles = struct('position',{},'color',{});
+    % color map for different characters
+    color_map = str2num(char(kron(dec2base(1:10,3),[1 0])))*0.5;
     
     for k = 1:seg_count
         max_corr = 0;
@@ -161,12 +165,19 @@ for i = 1:length(images)
             end
         end
         
-        rec_str(end+1) = label;
+        ocr_str(end+1) = label;
+        % add rectangle
+        rectangles{end+1} = struct('position',[seg.col_range(1) seg.row_range(1) length(seg.col_range) length(seg.row_range)],...
+            'color',color_map(char(label)-'0'+1,:));
         
     end
 
     subplot(6,2,i);
     imshow(img);
-    title(rec_str);
+    hold on;
+    for k = 1:length(rectangles)
+        rectangle('Position',rectangles{k}.position, 'EdgeColor',rectangles{k}.color);
+    end
+    title(ocr_str);
 
 end
