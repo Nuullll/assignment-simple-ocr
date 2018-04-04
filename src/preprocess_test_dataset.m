@@ -1,3 +1,6 @@
+%% handle scratch
+handle_scratch;
+
 %% preprocess test dataset
 D = dir([TEST_DIR, '*.bmp']);
 images = {D.name};

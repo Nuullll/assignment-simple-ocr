@@ -10,7 +10,6 @@ mkdir(TEST_DIR, 'binarized');
 preprocess_train_dataset;
 
 %% preprocess test dataset
-handle_scratch;
 preprocess_test_dataset;
 
 %% read train model
