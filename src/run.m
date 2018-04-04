@@ -10,6 +10,7 @@ mkdir(TEST_DIR, 'binarized');
 preprocess_train_dataset;
 
 %% preprocess test dataset
+handle_scratch;
 preprocess_test_dataset;
 
 %% read train model
@@ -83,7 +84,7 @@ for i = 1:length(images)
         conn = bwconncomp(~piece);
         conn_list = conn.PixelIdxList;
         for k = 1:length(conn_list)
-            if length(conn_list{k}) <= numel(img)/1200
+            if length(conn_list{k}) <= numel(img)/500
                 piece(conn_list{k}) = 1;
             end
         end
@@ -153,7 +154,7 @@ for i = 1:length(images)
             seg_img = imbinarize(imresize(dimg(seg.row_range,seg.col_range),[H W], 'nearest'));
             model_img = imbinarize(imresize(double(model.image),[H W],'nearest'));
             
-            corr = match_corr(seg_img, model_img);
+            corr = match_corr(~seg_img, ~model_img);
             
             if corr > max_corr
                 max_corr = corr;
