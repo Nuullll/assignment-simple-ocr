@@ -14,7 +14,7 @@ for i = 1:length(images)
     conn = bwconncomp(~bw_img);
     conn_list = conn.PixelIdxList;
     for k = 1:length(conn_list)
-        if length(conn_list{k}) <= numel(img)/1000
+        if length(conn_list{k}) <= numel(img)/1200
             bw_img(conn_list{k}) = 1;
         end
     end

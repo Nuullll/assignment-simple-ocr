@@ -83,18 +83,18 @@ for i = 1:length(images)
         conn = bwconncomp(~piece);
         conn_list = conn.PixelIdxList;
         for k = 1:length(conn_list)
-            if length(conn_list{k}) <= numel(img)/1000
+            if length(conn_list{k}) <= numel(img)/1200
                 piece(conn_list{k}) = 1;
             end
         end
         
+        % cut white edges
         [I,J] = find(piece==0);
         
         segmentations{seg_idx}.row_range = row_range(min(I):max(I));
         segmentations{seg_idx}.col_range = col_range(min(J):max(J));
     end
     
-    % discard abnormal segmentations (too small, too white)
     del_idx = [];
 
 %     display_segmentations(segmentations, img);
@@ -108,12 +108,31 @@ for i = 1:length(images)
         end
     end
     segmentations(del_idx) = [];
-
-%     display_segmentations(segmentations, img);
+    
+    seg_count = length(segmentations);
+    % remove glitches
+    for seg_idx = 1:seg_count
+        row_range = segmentations{seg_idx}.row_range;
+        col_range = segmentations{seg_idx}.col_range;
+        piece = dimg(row_range, col_range);
+        
+        % discard sparse rows ans columns
+        [I,J] = find(piece==0);
+        [HI,edges] = histcounts(I,'BinWidth',1);
+        t1 = find(HI >= 3);
+        minI = edges(t1(1));
+        maxI = edges(t1(end));
+        [HJ,edges] = histcounts(J,'BinWidth',1);
+        t2 = find(HJ >= 3);
+        minJ = edges(t2(1));
+        maxJ = edges(t2(end));
+        
+        segmentations{seg_idx}.row_range = row_range(minI:maxI);
+        segmentations{seg_idx}.col_range = col_range(minJ:maxJ);
+    end
 
     % do correlation between models and each segmentation
     % resize to align segmentation with model
-    seg_count = length(segmentations);
     rec_str = '';
     
     for k = 1:seg_count
@@ -131,10 +150,10 @@ for i = 1:length(images)
             H = max(seg_h, model_h);
             W = max(seg_w, model_w);
             
-            seg_img = double(imbinarize(imresize(dimg(seg.row_range,seg.col_range),[H W], 'nearest')));
-            model_img = double(imbinarize(imresize(double(model.image),[H W],'nearest')));
+            seg_img = imbinarize(imresize(dimg(seg.row_range,seg.col_range),[H W], 'nearest'));
+            model_img = imbinarize(imresize(double(model.image),[H W],'nearest'));
             
-            corr = sum(sum(seg_img.*model_img))/(norm(seg_img)*norm(model_img));
+            corr = match_corr(seg_img, model_img);
             
             if corr > max_corr
                 max_corr = corr;
@@ -146,7 +165,7 @@ for i = 1:length(images)
         
     end
 
-    subplot(5,2,i);
+    subplot(6,2,i);
     imshow(img);
     title(rec_str);
 
