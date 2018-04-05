@@ -19,7 +19,7 @@ models = struct('label',{},'image',{});
 
 for i = 1:length(images)
     name = images{i};
-    label = extractBefore(name, '.');
+    label = char(extractBefore(name, '.'));
     img = imread([TRAIN_DIR, 'binarized/', name]);
     
     models{end+1} = struct('label',label,'image',img);
@@ -55,7 +55,7 @@ for i = 1:length(images)
     
 
     % column-wise segmentation
-    segmentations = struct('row_range',{},'col_range',{});
+    segmentations = struct('row_range',{},'col_range',{},'row',{},'col',{});
     % loop through each row
     for row_idx = 1:row_count
         row_range = rows{row_idx}.row_range;
@@ -64,11 +64,11 @@ for i = 1:length(images)
         [~, idx] = findpeaks(duty_c, 'MinPeakHeight', 0.9, 'MinPeakDistance', 12);
         col_count = length(idx)+1;
 
-        segmentations{end+1} = struct('row_range',row_range, 'col_range',1:idx(1));
+        segmentations{end+1} = struct('row_range',row_range, 'col_range',1:idx(1), 'row',row_idx, 'col',1);
         for j = 1:col_count-2
-            segmentations{end+1} = struct('row_range',row_range, 'col_range',idx(j)+1:idx(j+1));
+            segmentations{end+1} = struct('row_range',row_range, 'col_range',idx(j)+1:idx(j+1), 'row',row_idx, 'col',j+1);
         end
-        segmentations{end+1} = struct('row_range',row_range, 'col_range',idx(end):b);
+        segmentations{end+1} = struct('row_range',row_range, 'col_range',idx(end):b, 'row',row_idx, 'col',col_count);
     end
 
     %% Processing: recognize each segmentation
@@ -134,7 +134,7 @@ for i = 1:length(images)
 
     % do correlation between models and each segmentation
     % resize to align segmentation with model
-    ocr_str = '';
+    ocr_str = {};
     % rectangles for result visualization
     rectangles = struct('position',{},'color',{});
     % color map for different characters
@@ -166,7 +166,7 @@ for i = 1:length(images)
             end
         end
         
-        ocr_str(end+1) = label;
+        ocr_str{seg.row}(seg.col) = label;
         % add rectangle
         rectangles{end+1} = struct('position',[seg.col_range(1) seg.row_range(1) length(seg.col_range) length(seg.row_range)],...
             'color',color_map(char(label)-'0'+1,:));
