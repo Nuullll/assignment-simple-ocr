@@ -169,26 +169,19 @@ for i = 1:length(images)
         ocr_str{seg.row}(seg.col) = label;
         % add rectangle
         rectangles{end+1} = struct('position',[seg.col_range(1) seg.row_range(1) length(seg.col_range) length(seg.row_range)],...
-            'color',color_map(char(label)-'0'+1,:));
+            'color',color_map(char(label)-'0'+1,:),'label',label);
         
     end
     
     figure(1);
     subplot(6,2,i);
-    imshow(img);
-    hold on;
-    for k = 1:length(rectangles)
-        rectangle('Position',rectangles{k}.position, 'EdgeColor',rectangles{k}.color, 'LineWidth', 3);
-    end
-    title(ocr_str);
-
-    figure(2);
-    subplot(6,2,i);
     imshow(img_orig);
     hold on;
     for k = 1:length(rectangles)
-        rectangle('Position',rectangles{k}.position, 'EdgeColor',rectangles{k}.color, 'LineWidth', 3);
+        pos = rectangles{k}.position;
+        rectangle('Position',pos, 'EdgeColor','g', 'LineWidth', 2);
+        text(pos(1),pos(2),rectangles{k}.label);
     end
     title(ocr_str);
-
+    ylabel(name,'FontWeight','bold');
 end
